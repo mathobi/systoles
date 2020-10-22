@@ -1,15 +1,19 @@
 
-from surface_dynamics import *
-
+from surface_dynamics import AbelianStratum
 from sage.functions.other import sqrt
 from sage.arith.misc import xgcd, gcd
 from sage.rings.infinity import Infinity
-from sage.modular.arithgroup.arithgroup_perm import *
-
+from sage.modular.arithgroup.arithgroup_perm import ArithmeticSubgroup, ArithmeticSubgroup_Permutation
 from multiprocessing import Pool as ThreadPool
+
+
+
 
 _SL2Z = ArithmeticSubgroup_Permutation()
 _SL2Z_Farey = _SL2Z.farey_symbol()
+
+
+
 
 def max_systole_h11( n, lower_bound=0, n_threads=2 ):
     r"""
@@ -50,6 +54,9 @@ def max_systole_h11( n, lower_bound=0, n_threads=2 ):
     o, m = max( curves_max, key=lambda l: l[1][0] )
     return o, m
 
+
+
+
 def _max_systole_h11_packed( x ):
     r""" 
     This function is a facade to the actual algorithm implemented in
@@ -70,6 +77,9 @@ def _max_systole_h11_packed( x ):
 
     curve, lower_bound = x 
     return max(shortest_systoles_on_h11_orbit( curve, lower_bound ).iteritems(), key=lambda l: l[1][0])
+
+
+
 
 def shortest_systoles_on_h11_orbit( curve, lower_bound ):
     # R = S * L^-1
@@ -140,7 +150,10 @@ def shortest_systoles_on_h11_orbit( curve, lower_bound ):
             systoles[o] = (mincycle, 'cycle', best_edges[1], best_edges[2] )
 
     return systoles
-                
+
+
+
+
 def _shortest_horizontal_saddles( origami ):
     r"""
     This helper function computes the shortest horizontal saddle connections on
@@ -196,7 +209,10 @@ def _shortest_horizontal_saddles( origami ):
         elif cur_len < e1:
             e1 = cur_len
     return (l, e0, e1)
-    
+
+
+
+
 # code snippet for update of short edges and loops.
 def _update(old, new, direction):
     # pass old as list as [ (loop length, loop direction), ... ]
