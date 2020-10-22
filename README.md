@@ -14,9 +14,14 @@ An example session might look as follows:
      
 ## surface_dynamics
 
-The program uses the package `surface_dynamics` by Vincent Delecroix that
-available at [GitLab](https://gitlab.com/videlec/surface_dynamics). To install `surface_dynamics` in your installation of Sage, you may issue the command 
+The program uses the package `surface_dynamics` by Vincent Delecroix whose
+source code is available at
+[GitLab](https://gitlab.com/videlec/surface_dynamics). You may also have a look
+at the [PyPI page](https://pypi.org/project/surface-dynamics) of the package
+that contains a lot more of information.
 
+To add the package
+`surface_dynamics` to your installation of Sage, you may issue the command 
     sage -pip install surface_dynamics
 
 in your favourite shell. If your Sage installation is a system-wide
@@ -24,6 +29,7 @@ installation and you have no administrator privileges, then you can install the
 package `surface_dynamics` for your user only by issuing the command
 
     sage -pip install surface_dynamics --user
+    
 
 ## sage-pylint
 
