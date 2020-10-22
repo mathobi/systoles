@@ -97,11 +97,13 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
       the maximal length of a systole on Origamis in `curve`.
 
     OUTPUT: A dictionary mapping each origami `o` in `curve` to a description
-    `(l, t, d)` of the shortest (relevant) systole of length on `o`. Here, `l`
-    is the length of the systole and `t` is either the string `'loop'` or
-    `'cycle'` depending on whether the shortest systole is a loop connecting a
-    singularity with itself or a cycle running through both singularites of
-    `o`, respectively.
+    `(l, t, d)` of the shortest (relevant) systole of length on `o`. If only a
+    single systole of length less than `lower_bound` is found on `o`, then this
+    systole is taken regardless of the fact that there may exist shorter
+    systoles. Here, `l` is the length of the systole and `t` is either the
+    string `'loop'` or `'cycle'` depending on whether the shortest systole is a
+    loop connecting a singularity with itself or a cycle running through both
+    singularites of `o`, respectively.
     In the case that the shortest systole is a loop, the final entry `d` of this
     tuple is a vector indicating the direction of the loop.
     If the systole is a cycle, then `d` is a tuple `(edge_0, edge_1)` of
