@@ -77,14 +77,38 @@ def _max_systole_h11_packed(x):
 
     curve, lower_bound = x
     return max(\
-            shortest_systoles_on_h11_orbit(curve, lower_bound).iteritems(),\
+            shortest_systoles_on_h11_curve(curve, lower_bound).iteritems(),\
             key=lambda l: l[1][0]\
             )
 
 
 
 
-def shortest_systoles_on_h11_orbit(curve, lower_bound):
+def shortest_systoles_on_h11_curve(curve, lower_bound):
+    r"""
+    This function computes the shortest systoles on the Origamis in a given
+    SL(2,ZZ) orbit in the stratum H(1,1).
+
+    INPUT:
+
+    - ``curve`` -- an arithmetic Teichmueller curve in H(1,1), i.e. a SL(2,ZZ)
+      orbit of Origamis in H(1,1).
+    - ``lower_bound`` -- a real number that is a known to be a lower bound for
+      the maximal length of a systole on Origamis in `curve`.
+
+    OUTPUT: A dictionary mapping each origami `o` in `curve` to a description
+    `(l, t, d)` of the shortest (relevant) systole of length on `o`. Here, `l`
+    is the length of the systole and `t` is either the string `'loop'` or
+    `'cycle'` depending on whether the shortest systole is a loop connecting a
+    singularity with itself or a cycle running through both singularites of
+    `o`, respectively.
+    In the case that the shortest systole is a loop, the final entry `d` of this
+    tuple is a vector indicating the direction of the loop.
+    If the systole is a cycle, then `d` is a tuple `(edge_0, edge_1)` of
+    tuples, where the tuples `edge_0` and `edge_1` contain length and direction
+    of the edges in the cycle that make up the shortest systole.
+
+    """
     # R = S * L^-1
     origami = curve.origami()
     l_action, _, s_action = origami.sl2z_edges()
@@ -160,8 +184,8 @@ def shortest_systoles_on_h11_orbit(curve, lower_bound):
 
 def _shortest_horizontal_saddles(origami):
     r"""
-    This helper function computes the shortest horizontal saddle connections on
-    an Origami with exactly two singularities.
+    This auxiliary function computes the shortest horizontal saddle connections
+    on an Origami with exactly two singularities.
 
     INPUT:
 
@@ -198,41 +222,40 @@ def _shortest_horizontal_saddles(origami):
     #
     # As there are only two singularities, we keep track of the shortest loop
     # and the two shortest edges between the two singularities.
-    l, e0, e1 = Infinity, Infinity, Infinity
+    loop, edge_0, edge_1 = Infinity, Infinity, Infinity
     for square in singularity_squares:
         cur_len = 1
         cur_square = r(square)
         while not cur_square in singularity_squares:
             cur_len, cur_square = cur_len+1, r(cur_square)
 
-        s1, s2 = square_to_singularity[square], square_to_singularity[cur_square]
-        if s1 == s2:
-            l = min(l, cur_len)
-        elif cur_len <= e0:
-            e0, e1 = cur_len, e0
-        elif cur_len < e1:
-            e1 = cur_len
-    return (l, e0, e1)
+        source, target = square_to_singularity[square], square_to_singularity[cur_square]
+        if source == target:
+            loop = min(loop, cur_len)
+        elif cur_len <= edge_0:
+            edge_0, edge_1 = cur_len, edge_0
+        elif cur_len < edge_1:
+            edge_1 = cur_len
+    return (loop, edge_0, edge_1)
 
 
 
 
 # code snippet for update of short edges and loops.
 def _update(old, new, direction):
-    # pass old as list as [ (loop length, loop direction), ... ]
-    l, e0, e1 = old
-    new_l, new_e0, new_e1 = new
+    old_loop, old_edge_0, old_edge_1 = old
+    new_loop, new_edge_0, new_edge_1 = new
 
-    if new_l < old[0][0]:
-        old[0] = (new_l, direction)
-    if new_e0 <= old[1][0]:
-        if new_e1 < old[1][0]:
-            old[2] = (new_e1, direction)
+    if new_loop < old[0][0]:
+        old[0] = (new_loop, direction)
+    if new_edge_0 <= old[1][0]:
+        if new_edge_1 < old[1][0]:
+            old[2] = (new_edge_1, direction)
         else:
             old[2] = old[1]
-        old[1] = (new_e0, direction)
-    elif new_e0 < old[2][0]:
-        old[2] = (new_e0, direction)
+        old[1] = (new_edge_0, direction)
+    elif new_edge_0 < old[2][0]:
+        old[2] = (new_edge_0, direction)
 
 
 # vim:ft=python
