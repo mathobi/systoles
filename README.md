@@ -22,7 +22,8 @@ or as
      (1,4,11,8,5,12)(2,15,9,6,13)(3,16,10,7,14),
      (sqrt(2) + 1, 'cycle', (1, (0, 1)), (sqrt(2), (1, 1))))
 
-
+If you find any bugs, please don't hesitate to contact the authors whose
+email-addresses you find in the above preprint.
      
 ## surface_dynamics
 
