@@ -5,11 +5,11 @@ algorithm is described in [this preprint](https://arxiv.org/abs/1809.10327v2)
 and the code is documented. 
 
 The code in `systoles_h11.pyx` and this `README` are released under the MIT
-license, see disclaimer at the top of `systoles_h11.pyx`. 
+license, see the disclaimer at the top of `systoles_h11.pyx`. 
 
 The code was tested with Sage version 8.9 from 2019-09-29.
 
-A session might look as 
+A session might look like
     
     sage: load('systoles_h11.pyx')
     Compiling [...]/systoles_h11.pyx...
@@ -17,7 +17,7 @@ A session might look as
     ((1,2)(3,4,5,6,7,8)
      (1,3,2,4,6,8)(5,7), (2, 'loop', (1, 0)))
      
-or as
+or like
 
     sage: load('systoles_h11.pyx')
     Compiling [...]/systoles_h11.pyx...
@@ -31,14 +31,15 @@ email-addresses you find in the above preprint.
      
 ## surface_dynamics
 
-The program uses the package `surface_dynamics` by Vincent Delecroix whose
+The program relies on the package `surface_dynamics` by Vincent Delecroix whose
 source code is available at
-[GitLab](https://gitlab.com/videlec/surface_dynamics). You may also have a look
-at the [PyPI page](https://pypi.org/project/surface-dynamics) of the package
-that contains a lot more of information.
+[GitLab](https://gitlab.com/videlec/surface_dynamics). You might also want to
+have a look at the [PyPI page](https://pypi.org/project/surface-dynamics) of
+the package that contains a lot more of information.
 
 To add the package
 `surface_dynamics` to your installation of Sage, you may issue the command 
+
     sage -pip install surface_dynamics
 
 in your favourite shell. If your Sage installation is a system-wide
@@ -61,4 +62,3 @@ run the bundled `sage-pylint` script by issuing the command
 are *not* necessary to use the program, though.
 
 
-    
