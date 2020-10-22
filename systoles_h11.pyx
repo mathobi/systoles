@@ -1,9 +1,10 @@
 
 from multiprocessing import Pool as ThreadPool
-from surface_dynamics import AbelianStratum
 from sage.functions.other import sqrt
+from sage.arith.misc import xgcd
 from sage.rings.infinity import Infinity
 from sage.modular.arithgroup.arithgroup_perm import ArithmeticSubgroup_Permutation
+from surface_dynamics import AbelianStratum
 
 
 
@@ -117,8 +118,9 @@ def shortest_systoles_on_h11_orbit(curve, lower_bound):
 
         mincycle = min(best_edges[0][0], best_edges[1][0]+best_edges[2][0])
 
-        # TODO: iterate over coprime pairs directly and optimize for not doing work twice! Need to solve word problem only half of the time with
-        # A S (y,-x) = (1,0) for A (x,y) = (1,0)
+        # TODO: iterate over coprime pairs directly and optimize for not doing
+        # work twice! Need to solve word problem only half of the time with A S
+        # (y,-x) = (1,0) for A (x,y) = (1,0)
 
         y = 1
         while y < mincycle and mincycle >= lower_bound:
@@ -126,37 +128,37 @@ def shortest_systoles_on_h11_orbit(curve, lower_bound):
             while x**2 + y**2 < mincycle**2 and mincycle >= lower_bound:
                 d, a, b = xgcd(x, y)
                 if d == 1:
-                    dlen = sqrt( x**2 + y**2 )
+                    dlen = sqrt(x**2 + y**2)
 
                     xy_o = o
-                    for p in reversed(_SL2Z_Farey.word_problem( _SL2Z( [[a,b], [-y,x]]))):
+                    for p in reversed(_SL2Z_Farey.word_problem(_SL2Z([[a, b], [-y, x]]))):
                         xy_o = action[xy_o][p]
                     _update(best_edges,\
                         (dlen * l for l in horizontal_saddles[xy_o]),\
-                        (x,y))
+                        (x, y))
 
                     xy_o = o
-                    for p in reversed(_SL2Z_Farey.word_problem( _SL2Z( [[-a,b], [-y,-x]]))):
+                    for p in reversed(_SL2Z_Farey.word_problem(_SL2Z([[-a, b], [-y, -x]]))):
                         xy_o = action[xy_o][p]
                     _update(best_edges,\
                         (dlen * l for l in horizontal_saddles[xy_o]),\
-                        (x,y))
+                        (x, y))
 
                     mincycle = min(best_edges[0][0], best_edges[1][0]+best_edges[2][0])
                 x += 1
-            y+=1
+            y += 1
 
         if mincycle == best_edges[0][0]:
-            systoles[o] = (mincycle, 'loop', best_edges[0][1] )
+            systoles[o] = (mincycle, 'loop', best_edges[0][1])
         else:
-            systoles[o] = (mincycle, 'cycle', best_edges[1], best_edges[2] )
+            systoles[o] = (mincycle, 'cycle', best_edges[1], best_edges[2])
 
     return systoles
 
 
 
 
-def _shortest_horizontal_saddles( origami ):
+def _shortest_horizontal_saddles(origami):
     r"""
     This helper function computes the shortest horizontal saddle connections on
     an Origami with exactly two singularities.
@@ -181,12 +183,12 @@ def _shortest_horizontal_saddles( origami ):
 
     # If (i1 i2 ... ir) is such a cycle then the squares that contain the
     # corresponding singularity at their lower left corner are i1, ..., ir.
-    singularity_squares = [ i for c in singularities for i in c  ]
+    singularity_squares = [i for c in singularities for i in c]
 
     # Mapping from singularity_squares to the singularity (either 0 or 1) that
     # they contain.
     square_to_singularity = dict(\
-            (s,0) if s in singularities[0] else (s,1)\
+            (s, 0) if s in singularities[0] else (s, 1)\
             for s in singularity_squares\
             )
 
