@@ -98,14 +98,19 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
 
     OUTPUT: A dictionary mapping each origami `o` in `curve` to a description
     `(l, t, d)` of the shortest (relevant) systole of length on `o`. If only a
-    single systole of length less than `lower_bound` is found on `o`, then this
-    systole is taken regardless of the fact that there may exist shorter
-    systoles. Here, `l` is the length of the systole and `t` is either the
-    string `'loop'` or `'cycle'` depending on whether the shortest systole is a
-    loop connecting a singularity with itself or a cycle running through both
-    singularites of `o`, respectively.
-    In the case that the shortest systole is a loop, the final entry `d` of this
-    tuple is a vector indicating the direction of the loop.
+    single systole of length less than `lower_bound` or the current maximal
+    length of a shortest systole is found on `o`, then this systole is taken
+    regardless of the fact that there may exist shorter systoles.
+
+    The constituents `l`, `t` and `d` of the values of the dictionary have the
+    following semantics: The value `l` is the length of the shortest relevant
+    systole on `o` and `t` is either the string `'loop'` or `'cycle'` depending
+    on whether the shortest systole is a loop connecting a singularity with
+    itself or a cycle running through both singularites of `o`, respectively.
+
+    In the case that the shortest systole is a loop, the final entry `d` is a
+    vector indicating the direction of the loop.
+
     If the systole is a cycle, then `d` is a tuple `(edge_0, edge_1)` of
     tuples, where the tuples `edge_0` and `edge_1` contain length and direction
     of the edges in the cycle that make up the shortest systole.
