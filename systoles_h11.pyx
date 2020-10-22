@@ -65,12 +65,15 @@ def max_systole_h11(n_squares, lower_bound=0, n_threads=2):
     component = AbelianStratum(1, 1).hyperelliptic_component()
     curves = component.arithmetic_teichmueller_curves(n_squares)
 
-    pool = ThreadPool(n_threads)
-    curves_max = pool.map(_max_systole_h11_packed, [(c, lower_bound) for c in curves])
-    pool.close()
-    pool.join()
+    if len(curves) > 0:
+        pool = ThreadPool(n_threads)
+        curves_max = pool.map(_max_systole_h11_packed, [(c, lower_bound) for c in curves])
+        pool.close()
+        pool.join()
 
-    return max(curves_max, key=lambda l: l[1][0])
+        return max(curves_max, key=lambda l: l[1][0])
+    else:
+        return None
 
 
 
