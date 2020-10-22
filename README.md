@@ -39,7 +39,8 @@ install `pylint` by running the command
     sage -pip install pylint
     
 in your favourite shell. After a successful installation you should be able to
-run the bundled `sage-pylint` script with `sage-pylint systoles_h11.pyx`.
+run the bundled `sage-pylint` script by issuing the command 
+`sage-pylint systoles_h11.pyx`.
 
 
     
