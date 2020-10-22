@@ -2,9 +2,12 @@
 
 This program computes systolic rations of Origamis in the stratum H(1,1). The
 algorithm is described in [this preprint](https://arxiv.org/abs/1809.10327v2)
-and the code is documented. The code in `systoles_h11.pyx` and this `README`
-are released under the MIT license (see disclaimer at the top of
-`systoles_h11.pyx`) and was tested with Sage version 8.9 from 2019-09-29.
+and the code is documented. 
+
+The code in `systoles_h11.pyx` and this `README` are released under the MIT
+license, see disclaimer at the top of `systoles_h11.pyx`. 
+
+The code was tested with Sage version 8.9 from 2019-09-29.
 
 A session might look as 
     
