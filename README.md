@@ -1,6 +1,6 @@
 # Shortest Systoles in H(1,1)
 
-This program computes systolic rations of Origamis in the stratum H(1,1). The
+This program computes systolic ratios of Origamis in the stratum H(1,1). The
 algorithm is described in [this preprint](https://arxiv.org/abs/1809.10327v2)
 and the code is documented. 
 
