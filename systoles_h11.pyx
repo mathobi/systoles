@@ -1,10 +1,9 @@
 
+from multiprocessing import Pool as ThreadPool
 from surface_dynamics import AbelianStratum
 from sage.functions.other import sqrt
-from sage.arith.misc import xgcd, gcd
 from sage.rings.infinity import Infinity
-from sage.modular.arithgroup.arithgroup_perm import ArithmeticSubgroup, ArithmeticSubgroup_Permutation
-from multiprocessing import Pool as ThreadPool
+from sage.modular.arithgroup.arithgroup_perm import ArithmeticSubgroup_Permutation
 
 
 
@@ -15,7 +14,7 @@ _SL2Z_Farey = _SL2Z.farey_symbol()
 
 
 
-def max_systole_h11( n, lower_bound=0, n_threads=2 ):
+def max_systole_h11(n, lower_bound=0, n_threads=2):
     r"""
     This function computes the maximal length of a shortest systole on Origamis
     in the stratum H(1,1) with exactly `n` squares.
@@ -43,29 +42,29 @@ def max_systole_h11( n, lower_bound=0, n_threads=2 ):
 
     """
 
-    component = AbelianStratum(1,1).hyperelliptic_component()
+    component = AbelianStratum(1, 1).hyperelliptic_component()
     curves = component.arithmetic_teichmueller_curves(n)
 
     pool = ThreadPool(n_threads)
-    curves_max = pool.map( _max_systole_h11_packed, [(c,lower_bound) for c in curves])
+    curves_max = pool.map(_max_systole_h11_packed, [(c, lower_bound) for c in curves])
     pool.close()
     pool.join()
 
-    o, m = max( curves_max, key=lambda l: l[1][0] )
+    o, m = max(curves_max, key=lambda l: l[1][0])
     return o, m
 
 
 
 
-def _max_systole_h11_packed( x ):
-    r""" 
+def _max_systole_h11_packed(x):
+    r"""
     This function is a facade to the actual algorithm implemented in
     `shortest_systles_on_h11_orbit` that takes a single tuple as argument and
     computes the maximum length of a systole.
 
     INPUT:
 
-    - ``x`` -- a tuple `(c,lower_bound)` of an arithmetic Teichmüller
+    - ``x`` -- a tuple `(c,lower_bound)` of an arithmetic Teichmueller
       curve/SL(2,ZZ)-orbit of Origamis in H(1,1) and a real number
       `lower_bound` that is a known lower bound for the maximal length of a
       systole on Origamis in `c`.
@@ -75,23 +74,26 @@ def _max_systole_h11_packed( x ):
 
     """
 
-    curve, lower_bound = x 
-    return max(shortest_systoles_on_h11_orbit( curve, lower_bound ).iteritems(), key=lambda l: l[1][0])
+    curve, lower_bound = x
+    return max(\
+            shortest_systoles_on_h11_orbit(curve, lower_bound).iteritems(),\
+            key=lambda l: l[1][0]\
+            )
 
 
 
 
-def shortest_systoles_on_h11_orbit( curve, lower_bound ):
+def shortest_systoles_on_h11_orbit(curve, lower_bound):
     # R = S * L^-1
     origami = curve.origami()
     l_action, _, s_action = origami.sl2z_edges()
     r_action = dict((lo, s_action[o]) for o, lo in l_action.iteritems())
-    action = dict((o,dict()) for o in s_action.iterkeys())
+    action = dict((o, dict()) for o in s_action.iterkeys())
     for o, so in s_action.iteritems():
         ro = r_action[o]
-        action[o][ 1] = so
+        action[o][1] = so
         action[so][-1] = o
-        action[o][ 2] = ro
+        action[o][2] = ro
         action[ro][-2] = o
     horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in action.iterkeys())
 
@@ -99,7 +101,7 @@ def shortest_systoles_on_h11_orbit( curve, lower_bound ):
     i, s_orbits = 0, s_action.keys()
     while i < len(s_orbits):
         o = s_orbits[i]
-        so = set( [o, s_action[o], s_action[s_action[o]], action[o][-1] ] )
+        so = set([o, s_action[o], s_action[s_action[o]], action[o][-1]])
         so.remove(o)
         for o in so:
             s_orbits.remove(o)
@@ -108,10 +110,10 @@ def shortest_systoles_on_h11_orbit( curve, lower_bound ):
     systoles = dict()
     for o in s_orbits:
         l, e0, e1 = horizontal_saddles[o]
-        best_edges = [ (l, (1,0)), (e0, (1,0)), (e1, (1,0)) ]
+        best_edges = [(l, (1, 0)), (e0, (1, 0)), (e1, (1, 0))]
 
         # treat the case (x,y) = (0,1) separately.
-        _update(best_edges, horizontal_saddles[s_action[o]], (0,1))
+        _update(best_edges, horizontal_saddles[s_action[o]], (0, 1))
 
         mincycle = min(best_edges[0][0], best_edges[1][0]+best_edges[2][0])
 
