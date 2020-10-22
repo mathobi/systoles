@@ -15,7 +15,7 @@ _SL2Z_Farey = _SL2Z.farey_symbol()
 
 
 
-def max_systole_h11(n, lower_bound=0, n_threads=2):
+def max_systole_h11(n_squares, lower_bound=0, n_threads=2):
     r"""
     This function computes the maximal length of a shortest systole on Origamis
     in the stratum H(1,1) with exactly `n` squares.
@@ -44,20 +44,19 @@ def max_systole_h11(n, lower_bound=0, n_threads=2):
     """
 
     component = AbelianStratum(1, 1).hyperelliptic_component()
-    curves = component.arithmetic_teichmueller_curves(n)
+    curves = component.arithmetic_teichmueller_curves(n_squares)
 
     pool = ThreadPool(n_threads)
     curves_max = pool.map(_max_systole_h11_packed, [(c, lower_bound) for c in curves])
     pool.close()
     pool.join()
 
-    o, m = max(curves_max, key=lambda l: l[1][0])
-    return o, m
+    return max(curves_max, key=lambda l: l[1][0])
 
 
 
 
-def _max_systole_h11_packed(x):
+def _max_systole_h11_packed(data):
     r"""
     This function is a facade to the actual algorithm implemented in
     `shortest_systles_on_h11_orbit` that takes a single tuple as argument and
@@ -65,7 +64,7 @@ def _max_systole_h11_packed(x):
 
     INPUT:
 
-    - ``x`` -- a tuple `(c,lower_bound)` of an arithmetic Teichmueller
+    - ``data`` -- a tuple `(c,lower_bound)` of an arithmetic Teichmueller
       curve/SL(2,ZZ)-orbit of Origamis in H(1,1) and a real number
       `lower_bound` that is a known lower bound for the maximal length of a
       systole on Origamis in `c`.
@@ -75,7 +74,7 @@ def _max_systole_h11_packed(x):
 
     """
 
-    curve, lower_bound = x
+    curve, lower_bound = data
     return max(\
             shortest_systoles_on_h11_curve(curve, lower_bound).iteritems(),\
             key=lambda l: l[1][0]\
@@ -86,8 +85,8 @@ def _max_systole_h11_packed(x):
 
 def shortest_systoles_on_h11_curve(curve, lower_bound):
     r"""
-    This function computes the shortest systoles on the Origamis in a given
-    SL(2,ZZ) orbit in the stratum H(1,1).
+    This function computes the maximal length of a shortest systoles on the
+    Origamis in a given SL(2,ZZ) orbit in the stratum H(1,1).
 
     INPUT:
 
@@ -97,10 +96,10 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
       the maximal length of a systole on Origamis in `curve`.
 
     OUTPUT: A dictionary mapping each origami `o` in `curve` to a description
-    `(l, t, d)` of the shortest (relevant) systole of length on `o`. If only a
-    single systole of length less than `lower_bound` or the current maximal
-    length of a shortest systole is found on `o`, then this systole is taken
-    regardless of the fact that there may exist shorter systoles.
+    `(l, t, d)` of the shortest (relevant) systole on `o`. If only a single
+    systole of length less than `lower_bound` or the current maximal length of
+    a shortest systole is found on `o`, then this systole is taken regardless
+    of the fact that there may exist shorter systoles.
 
     The constituents `l`, `t` and `d` of the values of the dictionary have the
     following semantics: The value `l` is the length of the shortest relevant
@@ -116,77 +115,175 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
     of the edges in the cycle that make up the shortest systole.
 
     """
-    # R = S * L^-1
-    origami = curve.origami()
-    l_action, _, s_action = origami.sl2z_edges()
-    r_action = dict((lo, s_action[o]) for o, lo in l_action.iteritems())
-    action = dict((o, dict()) for o in s_action.iterkeys())
-    for o, so in s_action.iteritems():
-        ro = r_action[o]
-        action[o][1] = so
-        action[so][-1] = o
-        action[o][2] = ro
-        action[ro][-2] = o
-    horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in action.iterkeys())
 
-    # we compute systoles only up to action of S as S preserves all lengths.
-    i, s_orbits = 0, s_action.keys()
-    while i < len(s_orbits):
-        o = s_orbits[i]
-        so = set([o, s_action[o], s_action[s_action[o]], action[o][-1]])
-        so.remove(o)
-        for o in so:
-            s_orbits.remove(o)
+
+    origami = curve.origami()
+    _, _, s_action = origami.sl2z_edges()
+
+    # Precompute information on shortest horizontal saddle connections for all
+    # origamis in this orbit.
+    horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in s_action.iterkeys())
+
+    # We compute systoles only up to action of the matrix S as all lengths are
+    # preserved by this action. To this end, we compute representatives of the
+    # orbits under S.
+    i, s_orbit_reps = 0, s_action.keys()
+    while i < len(s_orbit_reps):
+        o = s_orbit_reps[i]
+        s_o = s_action[o]
+        s_orbit_reps.remove(s_o)
+        s_o = s_action[s_o]
+        if s_o != o:
+            s_orbit_reps.remove(s_o)
+            s_o = s_action[s_o]
+            s_orbit_reps.remove(s_o)
         i += 1
 
     systoles = dict()
-    for o in s_orbits:
-        l, e0, e1 = horizontal_saddles[o]
-        best_edges = [(l, (1, 0)), (e0, (1, 0)), (e1, (1, 0))]
-
-        # treat the case (x,y) = (0,1) separately.
-        _update(best_edges, horizontal_saddles[s_action[o]], (0, 1))
-
-        mincycle = min(best_edges[0][0], best_edges[1][0]+best_edges[2][0])
-
-        # TODO: iterate over coprime pairs directly and optimize for not doing
-        # work twice! Need to solve word problem only half of the time with A S
-        # (y,-x) = (1,0) for A (x,y) = (1,0)
-
-        y = 1
-        while y < mincycle and mincycle >= lower_bound:
-            x = 1
-            while x**2 + y**2 < mincycle**2 and mincycle >= lower_bound:
-                d, a, b = xgcd(x, y)
-                if d == 1:
-                    dlen = sqrt(x**2 + y**2)
-
-                    xy_o = o
-                    for p in reversed(_SL2Z_Farey.word_problem(_SL2Z([[a, b], [-y, x]]))):
-                        xy_o = action[xy_o][p]
-                    _update(best_edges,\
-                        (dlen * l for l in horizontal_saddles[xy_o]),\
-                        (x, y))
-
-                    xy_o = o
-                    for p in reversed(_SL2Z_Farey.word_problem(_SL2Z([[-a, b], [-y, -x]]))):
-                        xy_o = action[xy_o][p]
-                    _update(best_edges,\
-                        (dlen * l for l in horizontal_saddles[xy_o]),\
-                        (x, y))
-
-                    mincycle = min(best_edges[0][0], best_edges[1][0]+best_edges[2][0])
-                x += 1
-            y += 1
-
-        if mincycle == best_edges[0][0]:
-            systoles[o] = (mincycle, 'loop', best_edges[0][1])
-        else:
-            systoles[o] = (mincycle, 'cycle', best_edges[1], best_edges[2])
+    for o in s_orbit_reps:
+        systole = shortest_systole_on_origami(o, horizontal_saddles, lower_bound)
+        lower_bound = max(lower_bound, systole[0])
+        systoles[o] = systole
 
     return systoles
 
 
+
+
+def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
+    r"""
+    This function checks whether the shortest systole on the given origami in
+    H(1,1) has length greater or equal to `lower_bound` and returns such a
+    systole if possible.
+
+    INPUT:
+
+    - ``origami`` -- the origami under consideration.
+    - ``horizontal_saddles`` -- a dictionary mapping each origami in the orbit
+      of `origami` to its shortest horizontal saddles. See the documentation of
+      `shortest_horizontal_saddles` for more information.
+    - ``lower_bound`` -- a real number. If a sysole of length less than
+      `lower_bound` is found, the search is aborted and this systole is
+      returned.
+
+    OUTPUT: The function returns a tuple `(l,t,...)`, where `l` is the length
+    of the shortest relevant systole and `t` is either the string `'loop'` or
+    `'cycle'` depending on whether the shortest relevant systole connects a
+    singularity on the given origami to itself or runs through both
+    singularities.
+
+    If the shortest relevant systole connects a singularity to itself, then the
+    return value is a tuple `(l,t,d)` consisting of the length `l`, the type
+    `t` being `'loop'` and the direction of the loop on the origami.
+
+    If the shortest relevant systole is a cycle passing through both
+    singularities, then the return value is a tuple `(l,t,edge_0,edge_1)`
+    consisting of the length `l` of the sysole, the type `t` being `'cycle'`
+    and the directions of the two saddle connections that constitute the
+    systole.
+
+    """
+
+    _, _, s_action = origami.sl2z_edges()
+
+    # We keep track of the shortest loop and the two shortest edges between the
+    # two singularities (ordered by their length) in the list shortest_edges.
+    # The auxiliary function _update_shortest_edges_ is used to update that
+    # data as the implementation is a bit ugly.
+    loop, edge_0, edge_1 = horizontal_saddles[origami]
+    shortest_edges = [(loop, (1, 0)), (edge_0, (1, 0)), (edge_1, (1, 0))]
+
+    # For each primitive direction (+/-dir_x, dir_y) in ZZ^2 with positive
+    # dir_x and dir_y whose length is less than the current length of a minimal
+    # cycle of saddle connections, we choose a matrix SL(2,ZZ) making the
+    # direction (dir_x, dir_y) a horizontal direction and transport back the
+    # precomputed information about horizontal saddle connections. The case
+    # (dir_x,dir_y) = (1,0) are just the horizontal saddle connections on
+    # origami and we treat the case (dir_x,dir_y) = (0,1) separately:
+    min_cycle = _update_shortest_edges_(\
+            shortest_edges,\
+            horizontal_saddles[s_action[origami]], (0, 1))
+
+    dir_y = 1
+    while dir_y < min_cycle and min_cycle >= lower_bound:
+        dir_x = 1
+        while dir_x**2 + dir_y**2 < min_cycle**2 and min_cycle >= lower_bound:
+            dir_origami, primitive = _origami_with_horizontal_saddle_direction_(\
+                    origami, dir_x, dir_y, 1)
+            if primitive:
+                dir_len = sqrt(dir_x**2 + dir_y**2)
+                _update_shortest_edges_(shortest_edges,\
+                    (dir_len * l for l in horizontal_saddles[dir_origami]),\
+                    (dir_x, dir_y))
+                dir_origami, _ = _origami_with_horizontal_saddle_direction_(\
+                        origami, dir_x, dir_y, -1)
+                min_cycle = _update_shortest_edges_(shortest_edges,\
+                    (dir_len * l for l in horizontal_saddles[dir_origami]),\
+                    (-dir_x, dir_y))
+
+            dir_x += 1
+        dir_y += 1
+
+    if min_cycle == shortest_edges[0][0]:
+        return (min_cycle, 'loop', shortest_edges[0][1])
+    return (min_cycle, 'cycle', shortest_edges[1], shortest_edges[2])
+
+
+def _origami_with_horizontal_saddle_direction_(origami, dir_x, dir_y, sign):
+    r"""
+    This function computes a further origami in the SL(2,ZZ)-orbit of origami
+    such that the direction (+/- x,y) on origami becomes the horizontal direction
+    (1,0) on the new origami.
+
+    INPUT:
+
+    - ``origami`` -- the origami on which the direction dir_x, dir_y is under
+      consideration.
+    - ``dir_x`` -- an integer.
+    - ``dir_y`` -- an integer.
+    - ``sign`` -- an integer. If `sign` is equal to 1, then this function
+      returns an origami with horizontal direction corresponding to (x,y) and
+      otherwise an origami with horizontal direction corresponding to (-x,y).
+
+    OUTPUT: A tuple `(o,p)` consisting of a boolean `p` and possibly an origami
+    `o`. If the greatest common divisor of the input `dir_x` and `dir_y` is not
+    equal to one, then no origami is returned and `p` is set to `False`.
+    Otherwise, `p` is `True` and the sought-after origami is `o`.
+    """
+
+    d, a, b = xgcd(dir_x, dir_y)
+    if d != 1:
+        return (None, False)
+
+    # Consider the matrices
+    #
+    # L = [1  1] [0 1]
+    # R = [1  0] [1 1]
+    # S = [0 -1] [1 0]
+    #
+    # The action of SL(2,ZZ) on the curve is encoded as three dictionaries
+    #   l_action, r_action, s_action
+    # mapping origamis to its image under the respective matrix.
+    #
+    # The object _SL2Z_Farey represents SL(2,ZZ) as being generated by the
+    # matrices S and Q = [0 -1] [1 -1] though. We write Q = RS and Q^-1 =
+    # LS^{-1} and may thus use the dictionaries as provided by the
+    # surface_dynamics package.
+
+    l_action, r_action, s_action = origami.sl2z_edges()
+    result = origami
+    sq_word = _SL2Z_Farey.word_problem(_SL2Z([[a, b], [-dir_y, dir_x]])) if sign == 1 \
+            else _SL2Z_Farey.word_problem(_SL2Z([[-a, b], [-dir_y, -dir_x]]))
+    for p in reversed(sq_word):
+        if p == 1:
+            result = s_action[result]
+        elif p == 2:
+            result = r_action[s_action[result]]
+        elif p == -1:
+            result = s_action[s_action[s_action[result]]]
+        elif p == -2:
+            result = l_action[s_action[s_action[s_action[result]]]]
+    return (result, True)
 
 
 def _shortest_horizontal_saddles(origami):
@@ -246,23 +343,27 @@ def _shortest_horizontal_saddles(origami):
     return (loop, edge_0, edge_1)
 
 
+def _update_shortest_edges_(shortest_edges, update, direction):
+    r"""
+    This function is an auxiliary helper function that deals with some ugly
+    implementation details concerning the way shortest systoles on origamis in
+    H(1,1) are represented in the function `shortest_systole_on_origami`.
+    """
 
+    new_loop, new_edge_0, new_edge_1 = update
 
-# code snippet for update of short edges and loops.
-def _update(old, new, direction):
-    old_loop, old_edge_0, old_edge_1 = old
-    new_loop, new_edge_0, new_edge_1 = new
-
-    if new_loop < old[0][0]:
-        old[0] = (new_loop, direction)
-    if new_edge_0 <= old[1][0]:
-        if new_edge_1 < old[1][0]:
-            old[2] = (new_edge_1, direction)
+    if new_loop < shortest_edges[0][0]:
+        shortest_edges[0] = (new_loop, direction)
+    if new_edge_0 <= shortest_edges[1][0]:
+        if new_edge_1 < shortest_edges[1][0]:
+            shortest_edges[2] = (new_edge_1, direction)
         else:
-            old[2] = old[1]
-        old[1] = (new_edge_0, direction)
-    elif new_edge_0 < old[2][0]:
-        old[2] = (new_edge_0, direction)
+            shortest_edges[2] = shortest_edges[1]
+        shortest_edges[1] = (new_edge_0, direction)
+    elif new_edge_0 < shortest_edges[2][0]:
+        shortest_edges[2] = (new_edge_0, direction)
+
+    return min(shortest_edges[0][0], shortest_edges[1][0]+shortest_edges[2][0])
 
 
 # vim:ft=python
