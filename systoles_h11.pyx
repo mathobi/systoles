@@ -83,7 +83,7 @@ def shortest_systoles_on_h11_orbit( curve, lower_bound ):
         action[so][-1] = o
         action[o][ 2] = ro
         action[ro][-2] = o
-    horizontal_saddles = dict((o, _horizontal_saddles(o)) for o in action.iterkeys())
+    horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in action.iterkeys())
 
     # we compute systoles only up to action of S as S preserves all lengths.
     i, s_orbits = 0, s_action.keys()
@@ -141,31 +141,60 @@ def shortest_systoles_on_h11_orbit( curve, lower_bound ):
 
     return systoles
                 
-def _horizontal_saddles( origami ):
+def _shortest_horizontal_saddles( origami ):
+    r"""
+    This helper function computes the shortest horizontal saddle connections on
+    an Origami with exactly two singularities.
+
+    INPUT:
+
+    - ``origami`` -- an Origami with exactly two singularities.
+
+    OUTPUT: A tuple `(l,e0,e1)`, where `l` is the length of the shortest
+    horizontal loop on the given origami and `e0` and `e1` are the lengths of
+    the two shortest horizontal edges between the two singularities.
+    """
+
+    # The singularities correspond to cycles in the cycle decomposition of the
+    # commutator of the "right" and "up" permutations of the origami.
     r, u = origami.r(), origami.u()
     comm = r * u * r.inverse() * u.inverse()
     singularities = comm.cycle_tuples()
+
+    # This code snippet works only for Origamis with two singularities.
+    assert len(singularities) == 2
+
+    # If (i1 i2 ... ir) is such a cycle then the squares that contain the
+    # corresponding singularity at their lower left corner are i1, ..., ir.
     singularity_squares = [ i for c in singularities for i in c  ]
 
+    # Mapping from singularity_squares to the singularity (either 0 or 1) that
+    # they contain.
     square_to_singularity = dict(\
             (s,0) if s in singularities[0] else (s,1)\
             for s in singularity_squares\
             )
 
+    # We compute the shortest horizontal saddle connection by going to the
+    # right from each square that contains one of the two singularities until
+    # we hit another singularity.
+    #
+    # As there are only two singularities, we keep track of the shortest loop
+    # and the two shortest edges between the two singularities.
     l, e0, e1 = Infinity, Infinity, Infinity
     for square in singularity_squares:
-        k = 1
-        k_square = r(square)
-        while not k_square in singularity_squares:
-            k, k_square = k+1, r(k_square)
+        cur_len = 1
+        cur_square = r(square)
+        while not cur_square in singularity_squares:
+            cur_len, cur_square = cur_len+1, r(cur_square)
 
-        s1, s2 = square_to_singularity[square], square_to_singularity[k_square]
+        s1, s2 = square_to_singularity[square], square_to_singularity[cur_square]
         if s1 == s2:
-            l = min(l, k)
-        elif k <= e0:
-            e0, e1 = k, e0
-        elif k < e1:
-            e1 = k
+            l = min(l, cur_len)
+        elif cur_len <= e0:
+            e0, e1 = cur_len, e0
+        elif cur_len < e1:
+            e1 = cur_len
     return (l, e0, e1)
     
 # code snippet for update of short edges and loops.
