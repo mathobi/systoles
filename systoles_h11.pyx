@@ -94,7 +94,7 @@ def max_systole_h11(n_squares, lower_bound=0, n_threads=2):
 
     if len(curves) > 0:
         pool = ThreadPool(n_threads)
-        curves_max = pool.map(_max_systole_h11_packed, [(c, lower_bound) for c in curves])
+        curves_max = pool.map(_max_systole_h11_packed, list((c, lower_bound) for c in curves))
         pool.close()
         pool.join()
 
@@ -123,7 +123,7 @@ def _max_systole_h11_packed(data):
 
     curve, lower_bound = data
     return max(\
-            shortest_systoles_on_h11_curve(curve, lower_bound).iteritems(),\
+            shortest_systoles_on_h11_curve(curve, lower_bound).items(),\
             key=lambda l: l[1][0]\
             )
 
@@ -174,7 +174,7 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
     # We compute systoles only up to action of the matrix S as all lengths are
     # preserved by this action. To this end, we compute representatives of the
     # orbits under S.
-    i, s_orbit_reps = 0, s_action.keys()
+    i, s_orbit_reps = 0, list(s_action.keys())
     while i < len(s_orbit_reps):
         o = s_orbit_reps[i]
         s_o = s_action[o]
