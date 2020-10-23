@@ -7,7 +7,8 @@ and the code is documented.
 The code in `systoles_h11.pyx` and this `README` are released under the MIT
 license, see the disclaimer at the top of `systoles_h11.pyx`. 
 
-The code was tested with Sage version 8.9 from 2019-09-29.
+The code was tested with Sage version 8.9 from 2019-09-29 and version 9.1 from
+2020-05-20.
 
 A session might look like
     
