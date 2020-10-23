@@ -25,6 +25,21 @@ or like
     ((1,2,3)(4,5,6,7,8,9,10,11,12,13,14,15,16)
      (1,4,11,8,5,12)(2,15,9,6,13)(3,16,10,7,14),
      (sqrt(2) + 1, 'cycle', (1, (0, 1)), (sqrt(2), (1, 1))))
+     
+You could also compute the shortest systole on a single origami (in normal
+form) via 
+    
+    sage: load('systoles_h11.pyx')
+    Compiling ./systoles_h11.pyx...
+    sage: S = AbelianStratum(1,1)
+    sage: H = S.one_component()
+    sage: o_it = H.origami_iterator(23)
+    sage: o = o_it.next()
+    sage: o
+    (1,2)(3,4,5)(6,7,8)(9,10,11)(12,13,14)(15,16,17)(18,19,20)(21,22,23)
+    (1,2,3,6,9,12,15,18,21,4,7,10,13,16,19,22,5,8,11,14,17,20,23)
+    sage: shortest_systole_on_h11_origami(o)
+    (sqrt(2), 'loop', (1, 1))
 
 If you find any bugs, please don't hesitate to contact the authors whose
 email-addresses you find in the above preprint.
