@@ -106,7 +106,7 @@ def max_systole_h11(n_squares, lower_bound=0, n_threads=2):
 def _max_systole_h11_packed(data):
     r"""
     This function is a facade to the actual algorithm implemented in
-    `shortest_systles_on_h11_orbit` that takes a single tuple as argument and
+    `shortest_systoles_on_h11_orbit` that takes a single tuple as argument and
     computes the maximum length of a systole.
 
     INPUT:
