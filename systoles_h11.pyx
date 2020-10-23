@@ -60,6 +60,33 @@ def max_systole_h11(n_squares, lower_bound=0, n_threads=2):
     OUTPUT: A tuple `(o,m)` consisting of the maximal length `m` of a shortest
     systole and an Origami `o` that achieves this bound.
 
+    EXAMPLES:
+
+    To look for an origami with 8 squares that maximizes the length of the
+    shortest systole, we might issue the command:
+
+        sage: max_systole_h11(8)
+        ((1,2)(3,4,5,6,7,8)
+         (1,3,2,4,6,8)(5,7), (2, 'loop', (1, 0)))
+        sage:
+
+    Similarly for origamis with 10 squares:
+
+        sage: max_systole_h11(10)
+        ((1,2,3)(4,5,6)(7,8,9,10)
+         (1,4,2,5,3,6,7,9)(8,10), (2, 'loop', (0, 1)))
+
+    If we look for origamis with 10 squares whose shortest systole has length
+    at least 4, we could run the following command:
+
+        sage: max_systole_h11(10, lower_bound=4)
+        ((1,2,3,4)(5,6,7,8,9,10)
+         (1,2,5,7,9,3,6,8,10,4), (3, 'cycle', (1, (0, 1)), (2, (1, 0))))
+
+    Note that the function does *not* return a shortest systole in this case
+    because it found a systole of length 3 that is not a shortest systole but
+    still shorter than 4.
+
     """
 
     component = AbelianStratum(1, 1).hyperelliptic_component()
@@ -72,9 +99,7 @@ def max_systole_h11(n_squares, lower_bound=0, n_threads=2):
         pool.join()
 
         return max(curves_max, key=lambda l: l[1][0])
-    else:
-        return None
-
+    return None
 
 
 
@@ -163,7 +188,9 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
 
     systoles = dict()
     for o in s_orbit_reps:
-        systole = shortest_systole_on_origami(o, horizontal_saddles, lower_bound)
+        systole = shortest_systole_on_h11_origami(\
+                o, lower_bound,\
+                horizontal_saddles=lambda o: horizontal_saddles[o])
         lower_bound = max(lower_bound, systole[0])
         systoles[o] = systole
 
@@ -172,7 +199,10 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
 
 
 
-def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
+def shortest_systole_on_h11_origami(\
+        origami,\
+        lower_bound=0,\
+        horizontal_saddles=lambda o: _shortest_horizontal_saddles(o)):
     r"""
     This function checks whether the shortest systole on the given origami in
     H(1,1) has length greater or equal to `lower_bound` and returns such a
@@ -180,13 +210,18 @@ def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
 
     INPUT:
 
-    - ``origami`` -- the origami under consideration.
-    - ``horizontal_saddles`` -- a dictionary mapping each origami in the orbit
-      of `origami` to its shortest horizontal saddles. See the documentation of
-      `shortest_horizontal_saddles` for more information.
-    - ``lower_bound`` -- a real number. If a sysole of length less than
-      `lower_bound` is found, the search is aborted and this systole is
-      returned.
+    - ``origami`` -- the origami under consideration. This has to be in
+      standard form as the function may fail otherwise. See the below examples.
+    - ``lower_bound`` -- a real number (default `0`). If a sysole of length
+      less than `lower_bound` is found, the search is aborted and this systole
+      is returned.
+    - ``horizontal_saddles`` -- a function mapping each origami in the
+      SL(2,ZZ)-orbit of `origami` to its shortest horizontal saddles. See the
+      documentation of `_shortest_horizontal_saddles` for more information of
+      how the value of this function should be structured. The default value is
+      a lambda expression computing the horizontal saddles on the fly. If you
+      want to compute shortest systoles on a whole SL(2,ZZ)-orbit, you might
+      want to change this function.
 
     OUTPUT: The function returns a tuple `(l,t,...)`, where `l` is the length
     of the shortest relevant systole and `t` is either the string `'loop'` or
@@ -204,6 +239,29 @@ def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
     and the directions of the two saddle connections that constitute the
     systole.
 
+    EXAMPLES:
+
+    In the following example we demonstrate how to obtain an origami in H(1,1)
+    in standard form and how to compute the shortest systole on it:
+
+        sage: S = AbelianStratum(1,1)
+        sage: H = S.one_component()
+        sage: o = H.one_origami()
+        sage: o
+        (1,2,3,4)
+        (1,4)(2,3)
+        sage: oo = o.to_standard_form()
+        sage: oo
+        (1,2,3,4)
+        (1,2)(3,4)
+        sage: shortest_systole_on_h11_origami(oo)
+        (sqrt(2), 'loop', (1, 1))
+        sage:
+
+    From this computation we learn that the shortest systole on the origamis
+    `o` and `oo` connects a singularity to itself, has length `sqrt(2)` and
+    direction `(1,1)` on `oo`.
+
     """
 
     _, _, s_action = origami.sl2z_edges()
@@ -212,7 +270,7 @@ def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
     # two singularities (ordered by their length) in the list shortest_edges.
     # The auxiliary function _update_shortest_edges_ is used to update that
     # data as the implementation is a bit ugly.
-    loop, edge_0, edge_1 = horizontal_saddles[origami]
+    loop, edge_0, edge_1 = horizontal_saddles(origami)
     shortest_edges = [(loop, (1, 0)), (edge_0, (1, 0)), (edge_1, (1, 0))]
 
     # For each primitive direction (+/-dir_x, dir_y) in ZZ^2 with positive
@@ -224,7 +282,7 @@ def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
     # origami and we treat the case (dir_x,dir_y) = (0,1) separately:
     min_cycle = _update_shortest_edges_(\
             shortest_edges,\
-            horizontal_saddles[s_action[origami]], (0, 1))
+            horizontal_saddles(s_action[origami]), (0, 1))
 
     dir_y = 1
     while dir_y < min_cycle and min_cycle >= lower_bound:
@@ -235,12 +293,12 @@ def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
             if primitive:
                 dir_len = sqrt(dir_x**2 + dir_y**2)
                 _update_shortest_edges_(shortest_edges,\
-                    (dir_len * l for l in horizontal_saddles[dir_origami]),\
+                    (dir_len * l for l in horizontal_saddles(dir_origami)),\
                     (dir_x, dir_y))
                 dir_origami, _ = _origami_with_horizontal_saddle_direction_(\
                         origami, dir_x, dir_y, -1)
                 min_cycle = _update_shortest_edges_(shortest_edges,\
-                    (dir_len * l for l in horizontal_saddles[dir_origami]),\
+                    (dir_len * l for l in horizontal_saddles(dir_origami)),\
                     (-dir_x, dir_y))
 
             dir_x += 1
@@ -249,6 +307,8 @@ def shortest_systole_on_origami(origami, horizontal_saddles, lower_bound):
     if min_cycle == shortest_edges[0][0]:
         return (min_cycle, 'loop', shortest_edges[0][1])
     return (min_cycle, 'cycle', shortest_edges[1], shortest_edges[2])
+
+
 
 
 def _origami_with_horizontal_saddle_direction_(origami, dir_x, dir_y, sign):
@@ -369,7 +429,7 @@ def _update_shortest_edges_(shortest_edges, update, direction):
     r"""
     This function is an auxiliary helper function that deals with some ugly
     implementation details concerning the way shortest systoles on origamis in
-    H(1,1) are represented in the function `shortest_systole_on_origami`.
+    H(1,1) are represented in the function `shortest_systole_on_h11_origami`.
     """
 
     new_loop, new_edge_0, new_edge_1 = update
