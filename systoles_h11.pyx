@@ -169,7 +169,7 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
 
     # Precompute information on shortest horizontal saddle connections for all
     # origamis in this orbit.
-    horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in s_action.keys())
+    horizontal_saddles = dict((o, shortest_horizontal_saddles(o)) for o in s_action.keys())
 
     # We compute systoles only up to action of the matrix S as all lengths are
     # preserved by this action. To this end, we compute representatives of the
@@ -202,7 +202,7 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
 def shortest_systole_on_h11_origami(\
         origami,\
         lower_bound=0,\
-        horizontal_saddles=lambda o: _shortest_horizontal_saddles(o)):
+        horizontal_saddles=lambda o: shortest_horizontal_saddles(o)):
     r"""
     This function checks whether the shortest systole on the given origami in
     H(1,1) has length greater or equal to `lower_bound` and returns such a
@@ -217,7 +217,7 @@ def shortest_systole_on_h11_origami(\
       is returned.
     - ``horizontal_saddles`` -- a function mapping each origami in the
       SL(2,ZZ)-orbit of `origami` to its shortest horizontal saddles. See the
-      documentation of `_shortest_horizontal_saddles` for more information of
+      documentation of `shortest_horizontal_saddles` for more information of
       how the value of this function should be structured. The default value is
       a lambda expression computing the horizontal saddles on the fly. If you
       want to compute shortest systoles on a whole SL(2,ZZ)-orbit, you might
@@ -369,7 +369,7 @@ def _origami_with_horizontal_saddle_direction_(origami, dir_x, dir_y, sign):
     return (result, True)
 
 
-def _shortest_horizontal_saddles(origami):
+def shortest_horizontal_saddles(origami):
     r"""
     This auxiliary function computes the shortest horizontal saddle connections
     on an Origami with exactly two singularities.
