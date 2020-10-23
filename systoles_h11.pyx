@@ -169,7 +169,7 @@ def shortest_systoles_on_h11_curve(curve, lower_bound):
 
     # Precompute information on shortest horizontal saddle connections for all
     # origamis in this orbit.
-    horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in s_action.iterkeys())
+    horizontal_saddles = dict((o, _shortest_horizontal_saddles(o)) for o in s_action.keys())
 
     # We compute systoles only up to action of the matrix S as all lengths are
     # preserved by this action. To this end, we compute representatives of the
