@@ -114,7 +114,7 @@ def _max_systole_h11_packed(data):
     - ``data`` -- a tuple `(c,lower_bound)` of an arithmetic Teichmueller
       curve/SL(2,ZZ)-orbit of Origamis in H(1,1) and a real number
       `lower_bound` that is a known lower bound for the maximal length of a
-      systole on Origamis in `c`.
+      shortest systole on Origamis in `c`.
 
     OUTPUT: A tuple `(o,m)` consisting of the maximal systole length `m` and an
     Origami `o` in `c` that achieves this bound.
