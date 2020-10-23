@@ -277,9 +277,10 @@ def shortest_systole_on_h11_origami(\
     # dir_x and dir_y whose length is less than the current length of a minimal
     # cycle of saddle connections, we choose a matrix in SL(2,ZZ) making the
     # direction (dir_x, dir_y) a horizontal direction and transport back the
-    # precomputed information about horizontal saddle connections. The case
-    # (dir_x,dir_y) = (1,0) are just the horizontal saddle connections on
-    # origami and we treat the case (dir_x,dir_y) = (0,1) separately:
+    # information about horizontal saddle connections. The case (dir_x,dir_y) =
+    # (1,0) are just the horizontal saddle connections on origami that we wrote
+    # to shortest_edges above and we treat the case (dir_x,dir_y) = (0,1)
+    # separately:
     min_cycle = _update_shortest_edges_(\
             shortest_edges,\
             horizontal_saddles(s_action[origami]), (0, 1))
