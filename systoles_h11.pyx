@@ -275,7 +275,7 @@ def shortest_systole_on_h11_origami(\
 
     # For each primitive direction (+/-dir_x, dir_y) in ZZ^2 with positive
     # dir_x and dir_y whose length is less than the current length of a minimal
-    # cycle of saddle connections, we choose a matrix SL(2,ZZ) making the
+    # cycle of saddle connections, we choose a matrix in SL(2,ZZ) making the
     # direction (dir_x, dir_y) a horizontal direction and transport back the
     # precomputed information about horizontal saddle connections. The case
     # (dir_x,dir_y) = (1,0) are just the horizontal saddle connections on
